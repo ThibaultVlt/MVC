@@ -14,27 +14,67 @@ try{
                 if(isset($_GET["id"])){
                     supprimer_stagiaire($_GET["id"]);
                 }else{
-                    throw new Exception("<span style='color:red'>Aucun identifiant de stagiaire envoyé</span>");
+                    throw new Exception("<span>Aucun identifiant de stagiaire envoyé</span>");
                 }
                 break;
             case "form_ajout":
                 require "templates/ajouterStagiaire.php";
                 break;
             case "ajout":
-                    if (!empty($_POST["nom_membre"]) && !empty($_POST["login_membre"])) {
-                        $nomMembre = $_POST["nom_membre"];
-                        $loginMembre = $_POST["login_membre"];
-                        ajouter_stagiaire($nomMembre, $loginMembre);
-                    } else {
-                        throw new Exception("<span style='color:red'>Aucun stagiaire n'a été ajouté</span>");
+                if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_GET['action']) && $_GET['action'] == 'ajout') {
+                    // Récupération des données envoyées
+                    $nomMembre = $_POST['nom_membre'];
+                    $loginMembre = $_POST['login_membre'];
+                    // Initialisation des variables d'erreur
+                    $error_nom = $error_login = '';
+                    // Validation du prénom (login)
+                    if (empty($loginMembre)) {
+                        $error_login = "Prénom obligatoire.";
+                    } elseif (!preg_match('/^[a-zA-Z-]{2,}$/', $loginMembre)) {
+                        $error_login = "Le prénom doit comporter au moins 2 caractères et ne contenir que des lettres ou des tirets.";
                     }
+                
+                    // Validation du nom
+                    if (empty($nomMembre)) {
+                        $error_nom = "Nom obligatoire.";
+                    } elseif (!preg_match('/^[a-zA-Z-]{2,}$/', $nomMembre)) {
+                        $error_nom = "Le nom doit comporter au moins 2 caractères et ne contenir que des lettres ou des tirets.";
+                    }
+                
+                    // Si aucune erreur, ajouter le stagiaire
+                    if (empty($error_nom) && empty($error_login)) {
+                        ajouter_stagiaire($nomMembre, $loginMembre);
+                        // Redirection vers la liste après ajout
+                        header('Location: index.php');
+                        exit();
+                    }
+                }
                 break;
             case "form_modif":
-                if (isset($_GET["id"])) {
-                    $stagiaire = get_stagiaire_by_id($_GET["id"]); // Récupérer le stagiaire à modifier
-                    require "templates/modifierStagiaire.php";
-                } else {
-                    throw new Exception("<span style='color:red'>Aucun identifiant de stagiaire envoyé</span>");
+                if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_GET['action']) && $_GET['action'] == 'modif') {
+                    // Récupération des données envoyées
+                    $nomMembre = $_POST['nom_membre'];
+                    $loginMembre = $_POST['login_membre'];
+                    // Initialisation des variables d'erreur
+                    $error_nom = $error_login = '';
+                    // Validation du prénom (login)
+                    if (empty($loginMembre)) {
+                        $error_login = "Prénom obligatoire.";
+                    } elseif (!preg_match('/^[a-zA-Z-]{2,}$/', $loginMembre)) {
+                        $error_login = "Le prénom doit comporter au moins 2 caractères et ne contenir que des lettres";
+                    }
+                    // Validation du nom
+                    if (empty($nomMembre)) {
+                        $error_nom = "Nom obligatoire.";
+                    } elseif (!preg_match('/^[a-zA-Z-]{2,}$/', $nomMembre)) {
+                        $error_nom = "Le nom doit comporter au moins 2 caractères et ne contenir que des lettres ou des tirets.";
+                    }
+                    // Si aucune erreur, modifier le stagiaire
+                    if (empty($error_nom) && empty($error_login)) {
+                        modifier_stagiaire($_GET['id'], $nomMembre, $loginMembre);
+                        header('Location: index.php');
+                        exit();
+                    }
                 }
                 break;
             case "modif":
@@ -42,7 +82,7 @@ try{
                     modifier_stagiaire($_GET["id"], $_POST["nom_membre"], $_POST["login_membre"]);
                     listeStagiaires(); // Retour à la liste après modification
                 } else {
-                    throw new Exception("<span style='color:red'>Les données pour la modification sont incomplètes</span>");
+                    throw new Exception("<span>Les données pour la modification sont incomplètes</span>");
                 }
                 break;
         }
