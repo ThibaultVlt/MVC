@@ -16,10 +16,10 @@ try{
                 }else{
                     throw new Exception("<span>Aucun identifiant de stagiaire envoyé</span>");
                 }
-                break;
+            break;
             case "form_ajout":
                 require "templates/ajouterStagiaire.php";
-                break;
+            break;
             case "ajout":
                 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_GET['action']) && $_GET['action'] == 'ajout') {
                     // Récupération des données envoyées
@@ -40,7 +40,6 @@ try{
                     } elseif (!preg_match('/^[a-zA-Z-]{2,}$/', $nomMembre)) {
                         $error_nom = "Le nom doit comporter au moins 2 caractères et ne contenir que des lettres ou des tirets.";
                     }
-                
                     // Si aucune erreur, ajouter le stagiaire
                     if (empty($error_nom) && empty($error_login)) {
                         ajouter_stagiaire($nomMembre, $loginMembre);
@@ -49,42 +48,42 @@ try{
                         exit();
                     }
                 }
-                break;
+            break;
             case "form_modif":
-                if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_GET['action']) && $_GET['action'] == 'modif') {
-                    // Récupération des données envoyées
-                    $nomMembre = $_POST['nom_membre'];
-                    $loginMembre = $_POST['login_membre'];
-                    // Initialisation des variables d'erreur
-                    $error_nom = $error_login = '';
-                    // Validation du prénom (login)
-                    if (empty($loginMembre)) {
-                        $error_login = "Prénom obligatoire.";
-                    } elseif (!preg_match('/^[a-zA-Z-]{2,}$/', $loginMembre)) {
-                        $error_login = "Le prénom doit comporter au moins 2 caractères et ne contenir que des lettres";
-                    }
-                    // Validation du nom
-                    if (empty($nomMembre)) {
-                        $error_nom = "Nom obligatoire.";
-                    } elseif (!preg_match('/^[a-zA-Z-]{2,}$/', $nomMembre)) {
-                        $error_nom = "Le nom doit comporter au moins 2 caractères et ne contenir que des lettres ou des tirets.";
-                    }
-                    // Si aucune erreur, modifier le stagiaire
-                    if (empty($error_nom) && empty($error_login)) {
-                        modifier_stagiaire($_GET['id'], $nomMembre, $loginMembre);
-                        header('Location: index.php');
-                        exit();
-                    }
-                }
-                break;
-            case "modif":
-                if (isset($_GET["id"]) && isset($_POST["nom_membre"]) && isset($_POST["login_membre"])) {
-                    modifier_stagiaire($_GET["id"], $_POST["nom_membre"], $_POST["login_membre"]);
-                    listeStagiaires(); // Retour à la liste après modification
+                if (isset($_GET["id"])) {
+                    // Récupérer les données du stagiaire
+                    $stagiaire = get_stagiaire_by_id($_GET["id"]);
+                    require "templates/modifierStagiaire.php";
                 } else {
-                    throw new Exception("<span>Les données pour la modification sont incomplètes</span>");
+                    throw new Exception("ID stagiaire manquant");
                 }
-                break;
+            break;
+            case "modif":
+                if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+                    if (isset($_GET['id'], $_POST['nom_membre'], $_POST['login_membre'])) {
+                        // Récupérer les données du formulaire
+                        $nomMembre = $_POST['nom_membre'];
+                        $loginMembre = $_POST['login_membre'];
+                        // Validation des champs
+                        $error_nom = $error_login = '';
+                        if (empty($nomMembre)) {
+                            $error_nom = "Nom obligatoire.";
+                        }
+                        if (empty($loginMembre)) {
+                            $error_login = "Prénom obligatoire.";
+                        }
+                        if (empty($error_nom) && empty($error_login)) {
+                            modifier_stagiaire($_GET['id'], $nomMembre, $loginMembre);
+                            header('Location: index.php');
+                            exit();
+                        } else {
+                            // Si des erreurs sont présentes, afficher à nouveau le formulaire
+                            $stagiaire = get_stagiaire_by_id($_GET['id']);
+                            require "templates/modifierStagiaire.php";
+                        }
+                    }
+                }
+            break;
         }
 
     } else {
